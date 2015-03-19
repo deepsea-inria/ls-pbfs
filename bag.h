@@ -235,6 +235,6 @@ extern "C++" {
   }
 }
 
-#include "bag.cpp"
+#include "bag2.h"
 
 #endif
