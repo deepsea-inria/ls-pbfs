@@ -4,3 +4,5 @@
 //#define parfor for
 //#include <cilkview.h>
 //#define cilk_for for
+#include "benchmark.hpp"
+namespace par = pasl::sched::native;

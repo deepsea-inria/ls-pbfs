@@ -8,7 +8,6 @@
 #include <sys/mman.h>
 
 #include "common.hpp"
-#include "benchmark.hpp"
 
 #include "util.h"
 
@@ -88,11 +87,11 @@ int main(int argc, char** argv) {
     pasl::util::cmdline::dispatch_by_argmap(tmg, "load");
     convert(graph, lsg);
     print_adjlist_summary(graph);
-    distances = newA(intT, graph.get_nb_vertices());
+    distances = newA(unsigned int, graph.get_nb_vertices());
     mlockall(0);
   };
   auto run = [&] (bool sequential) {
-    par::parallel_for(0, lsg.numNodes(), [&] (intT i) {
+    par::parallel_for(0, (intT)lsg.numNodes(), [&] (intT i) {
       distances[i] = UINT_MAX;
     });
     lsg.pbfs(source, distances);
