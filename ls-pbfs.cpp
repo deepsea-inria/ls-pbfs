@@ -33,82 +33,33 @@ intT nb_visited;
 namespace pasl {
 namespace graph {
   
-  bool should_disable_random_permutation_of_vertices;
-  /*
-  
-template <class Adjlist, class Ligra_graph>
-void convert(const Adjlist& adj, Ligra_graph& lig) {
-  intT nb_vertices = adj.get_nb_vertices();
-  intT nb_edges = adj.nb_edges;
-  intT nn = nb_vertices;
-  intT mm = nb_edges;
-  using vertex_type = typename Ligra_graph::vertex_type;
-  vertex_type* VV = newA(vertex_type, nn);
-  intE* ai = newA(intE, 2 * mm);
-  intE* in_degrees = newA(intE, nn);
-  for (intE i = 0; i < nn; i++)
-    in_degrees[i] = 0;
-  for (intE i = 0; i < nb_vertices; i++) {
-    intE n = adj.adjlists[i].get_out_degree();
-    intE* neighbors = adj.adjlists[i].get_out_neighbors();
-    for (intE j = 0; j < n; j++) {
-      intE ngh = neighbors[j];
-      in_degrees[ngh]++;
-    }
-  }
-  intE* offsets = newA(intE, nn);
-  for (intE i = 0; i < nn; i++) {
-    offsets[i] = 0;
-    offsets[i] += adj.adjlists[i].get_out_degree();
-    offsets[i] += in_degrees[i];
-  }
-  intE acc = 0;
-  for (intE i = 0; i < nn; i++) {
-    intE newacc = acc + offsets[i];
-    offsets[i] = acc;
-    acc = newacc;
-  }
-  intE** outps = newA(intE*, nn);
-  intE** inps = newA(intE*, nn);
-  for (intE i = 0; i < nn; i++) {
-    intE indeg = in_degrees[i];
-    intE outdeg = adj.adjlists[i].get_out_degree();
-    intE* outp = &ai[offsets[i]];
-    intE* inp = outp + outdeg;
-    outps[i] = outp;
-    inps[i] = inp;
-    VV[i].setOutNeighbors(outp);
-    VV[i].setInNeighbors(inp);
-    VV[i].setInDegree(indeg);
-    VV[i].setOutDegree(outdeg);
-    intE* outs = adj.adjlists[i].get_out_neighbors();
-    for (intE k = 0; k < outdeg; k++) {
-      outp[k] = outs[k];
-    }
-  }
-  intE* incounts = newA(intE, nn);
-  for (intE i = 0; i < nn; i++)
-    incounts[i] = 0;
-  for (intE i = 0; i < nn; i++) {
-    intE n = adj.adjlists[i].get_out_degree();
-    intE* neighbors = adj.adjlists[i].get_out_neighbors();
-    for (intE j = 0; j < n; j++) {
-      intE ngh = neighbors[j];
-      intE c = incounts[ngh]++;
-      intE* inp = inps[ngh];
-      inp[c] = i;
-    }
-  }
-  lig = Ligra_graph(VV, nn, mm, ai);
-  free(in_degrees);
-  free(offsets);
-  free(outps);
-  free(inps);
-  free(incounts);
-}
-  */
+bool should_disable_random_permutation_of_vertices;
 
-  
+template <class Adjlist, class LSGraph>
+void convert(const Adjlist& adj, LSGraph& lsg) {
+  intT n = adj.get_nb_vertices();
+  intT m = adj.nb_edges;
+  intT* nodes = newA(intT, n+1);
+  intT* edges = newA(intT, m);
+  intT nptr = 0;
+  for (intT i = 0; i < n; i++) {
+    intT deg = adj.adjlists[i].get_out_degree();
+    nodes[i] = nptr;
+    nptr += deg;
+  }
+  nodes[n] = nptr;
+  for (intT i = 0; i < n; i++) {
+    intT deg = adj.adjlists[i].get_out_degree();
+    intT* nghbrs = adj.adjlists[i].get_out_neighbors();
+    intT* dst = &edges[nodes[i]];
+    for (intT j = 0; j < deg; j++) {
+      dst[j] = nghbrs[j];
+    }
+  }
+  lsg.replace(n, m, nodes, edges);
+}
+
+ 
 }
 }
 
@@ -123,12 +74,10 @@ int main(int argc, char** argv) {
   using adjlist_seq_type = pasl::graph::flat_adjlist_seq<vtxid_type>;
   using adjlist_type = pasl::graph::adjlist<adjlist_seq_type>;
   
-  //  using ligra_type = graph<asymmetricVertex>;
-  
   using vtxid_type = typename adjlist_type::vtxid_type;
-  //  ligra_type lig;
+  Graph lsg;
   intT source;
-  intT* Parents;
+  unsigned int* distances;
   auto init = [&] {
     pasl::graph::should_disable_random_permutation_of_vertices = pasl::util::cmdline::parse_or_default_bool("should_disable_random_permutation_of_vertices", false, false);
     adjlist_type graph;
@@ -137,32 +86,35 @@ int main(int argc, char** argv) {
     tmg.add("from_file",          [&] { load_graph_from_file(graph); });
     tmg.add("by_generator",       [&] { generate_graph(graph); });
     pasl::util::cmdline::dispatch_by_argmap(tmg, "load");
-    //convert(graph, lig);
+    convert(graph, lsg);
     print_adjlist_summary(graph);
+    distances = newA(intT, graph.get_nb_vertices());
     mlockall(0);
   };
   auto run = [&] (bool sequential) {
-    //Parents = ComputeBFS(lig, source);
+    par::parallel_for(0, lsg.numNodes(), [&] (intT i) {
+      distances[i] = UINT_MAX;
+    });
+    lsg.pbfs(source, distances);
   };
   auto output = [&] {
     nb_visited = 0;
-    /*
-    for (intT i = 0; i < lig.n; i++)
-      if (Parents[i] >= 0)
+    for (intT i = 0; i < lsg.numNodes(); i++) {
+      if (distances[i] != UINT_MAX) {
         nb_visited++;
-    free(Parents);
-    */
+      }
+    }
     std::cout << "nb_visited\t" << nb_visited << std::endl;
   };
   auto destroy = [&] {
-    
+    free(distances);
   };
   pasl::sched::launch(argc, argv, init, run, output, destroy);
   
   return 0;
 }
 
-
+/*
 
 // Helper function for checking correctness of result
 static bool
@@ -268,3 +220,4 @@ main2 (int argc, char** argv)
 
   return 0;
 }
+ */

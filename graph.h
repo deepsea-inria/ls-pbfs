@@ -57,6 +57,7 @@ class Graph
 
  public:
   // Constructor/Destructor
+  Graph() {}
   Graph(int *ir, int *jc, int m, int n, int nnz);
   ~Graph();
 
@@ -67,6 +68,14 @@ class Graph
   // Various BFS versions
   int bfs(const int s, unsigned int distances[]) const;
   int pbfs(const int s, unsigned int distances[]) const;
+
+  void replace(unsigned int n, unsigned int m, int* _nodes, int* _edges) {
+    nNodes = n;
+    nEdges = m;
+    nodes = _nodes;
+    edges = _edges;
+  }
+  
 };
 
 #endif
