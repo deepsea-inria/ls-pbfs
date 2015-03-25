@@ -11,9 +11,6 @@
 
 #include "util.h"
 
-using intT = int;
-using intE = int;
-
 using namespace std;
 
 //cilk::cilkview cv;
@@ -69,7 +66,7 @@ void convert(const Adjlist& adj, LSGraph& lsg) {
 
 int main(int argc, char** argv) {
 
-  using vtxid_type = intE;
+  using vtxid_type = intT;
   using adjlist_seq_type = pasl::graph::flat_adjlist_seq<vtxid_type>;
   using adjlist_type = pasl::graph::adjlist<adjlist_seq_type>;
   
@@ -91,7 +88,7 @@ int main(int argc, char** argv) {
     mlockall(0);
   };
   auto run = [&] (bool sequential) {
-    par::parallel_for(0, (intT)lsg.numNodes(), [&] (intT i) {
+    par::parallel_for((intT)0, (intT)lsg.numNodes(), [&] (intT i) {
       distances[i] = UINT_MAX;
     });
     lsg.pbfs(source, distances);

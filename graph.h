@@ -37,39 +37,39 @@ class Graph
 
  private:
   // Number of nodes
-  unsigned int nNodes;
+  intT nNodes;
   // Number of edges
-  unsigned int nEdges;
+  intT nEdges;
 
-  int * nodes;
-  int * edges;
+  intT * nodes;
+  intT * edges;
 
-  void pbfs_walk_Bag(Bag<int>*, Bag_reducer<int>*, unsigned int, unsigned int[]) const;
-  void pbfs_walk_Pennant(Pennant<int>*, Bag_reducer<int>*, unsigned int,
+  void pbfs_walk_Bag(Bag<intT>*, Bag_reducer<intT>*, unsigned int, unsigned int[]) const;
+  void pbfs_walk_Pennant(Pennant<intT>*, Bag_reducer<intT>*, unsigned int,
 			unsigned int[], int) const;
-  void pbfs_proc_Node(const int[], Bag_reducer<int>*, unsigned int, unsigned int[], int) const;
-  void pbfs_proc_Nodep(const int[], int, Bag_reducer<int>*, unsigned int, unsigned int[]) const;
+  void pbfs_proc_Node(const intT[], Bag_reducer<intT>*, unsigned int, unsigned int[], int) const;
+  void pbfs_proc_Nodep(const intT[], int, Bag_reducer<intT>*, unsigned int, unsigned int[]) const;
 
-  int countEdges(Bag<int>*);
-  int countEdgesInPennant(Pennant<int>*, int);
+  intT countEdges(Bag<intT>*);
+  intT countEdgesInPennant(Pennant<intT>*, int);
 
   unsigned long long todval(struct timeval*);
 
  public:
   // Constructor/Destructor
   Graph() {}
-  Graph(int *ir, int *jc, int m, int n, int nnz);
+  //  Graph(int *ir, int *jc, int m, int n, int nnz);
   ~Graph();
 
   // Accessors for basic graph data
-  u_int numNodes() const { return nNodes; }
-  u_int numEdges() const { return nEdges; }
+  intT numNodes() const { return nNodes; }
+  intT numEdges() const { return nEdges; }
 
   // Various BFS versions
-  int bfs(const int s, unsigned int distances[]) const;
-  int pbfs(const int s, unsigned int distances[]) const;
+  intT bfs(const intT s, unsigned int distances[]) const;
+  intT pbfs(const intT s, unsigned int distances[]) const;
 
-  void replace(unsigned int n, unsigned int m, int* _nodes, int* _edges) {
+  void replace(unsigned int n, unsigned int m, intT* _nodes, intT* _edges) {
     nNodes = n;
     nEdges = m;
     nodes = _nodes;

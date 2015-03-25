@@ -46,7 +46,7 @@ unsigned long long
 Graph::todval (struct timeval *tp) {
     return tp->tv_sec * 1000 * 1000 + tp->tv_usec;
 }
-
+#if 0
 Graph::Graph(int *ir, int *jc, int m, int n, int nnz)
 {
   this->nNodes = m;
@@ -139,19 +139,21 @@ Graph::Graph(int *ir, int *jc, int m, int n, int nnz)
   //delete[] v;
 }
 
+#endif
+
 Graph::~Graph()
 {
   delete[] this->nodes;
   delete[] this->edges;
 }
 
-int
-Graph::bfs(const int s, unsigned int distances[])
+intT
+Graph::bfs(const intT s, unsigned int distances[])
 const
 {
-  unsigned int *queue = new unsigned int[nNodes];
-  unsigned int head, tail;
-  unsigned int current, newdist;
+  intT *queue = new intT[nNodes];
+  intT head, tail;
+  intT current, newdist;
 
   if (s < 0 || s > nNodes)
     return -1;
@@ -163,7 +165,7 @@ const
 
   do {
     newdist = distances[current]+1;
-    for (int i = nodes[current]; i < nodes[current+1]; i++) {
+    for (intT i = nodes[current]; i < nodes[current+1]; i++) {
       if (newdist < distances[edges[i]])
 	queue[tail++] = edges[i];
 
@@ -179,13 +181,13 @@ const
 }
 
 inline void
-Graph::pbfs_walk_Bag(Bag<int> *b,
-		     Bag_reducer<int>* next,
+Graph::pbfs_walk_Bag(Bag<intT> *b,
+		     Bag_reducer<intT>* next,
 		     unsigned int newdist,
 		     unsigned int distances[])
   const
 {
-  Pennant<int> *p = NULL;
+  Pennant<intT> *p = NULL;
 
   if (b->getFill() > 0) {
     // Split the bag and recurse
@@ -207,8 +209,8 @@ Graph::pbfs_walk_Bag(Bag<int> *b,
 }
 
 inline void
-Graph::pbfs_walk_Pennant(Pennant<int> *p,
-			 Bag_reducer<int>* next,
+Graph::pbfs_walk_Pennant(Pennant<intT> *p,
+			 Bag_reducer<intT>* next,
 			 unsigned int newdist,
 			 unsigned int distances[],
 			 int fillSize)
@@ -234,19 +236,19 @@ Graph::pbfs_walk_Pennant(Pennant<int> *p,
 }
 
 inline void
-Graph::pbfs_proc_Node(const int n[],
-		     Bag_reducer<int>* next,
+Graph::pbfs_proc_Node(const intT n[],
+		     Bag_reducer<intT>* next,
 		     unsigned int newdist,
 		     unsigned int distances[],
 		     int fillSize)
   const
 {
-  Bag<int>* bnext = &((*next).get_reference());
+  Bag<intT>* bnext = &((*next).get_reference());
   for (int j = 0; j < fillSize; j++) {
     // Scan the edges of the current node and add untouched
     // neighbors to the opposite bag
     //if ((nodes[n[j]+1] - nodes[n[j]]) < NEIGHBOR_CHUNK) {
-      for (int i = nodes[n[j]]; i < nodes[n[j]+1]; ++i) {
+      for (intT i = nodes[n[j]]; i < nodes[n[j]+1]; ++i) {
 	//if (newdist < distances[perm[edges[i]]]) {
 	if (newdist < distances[edges[i]]) {
 	  (*bnext).insert(edges[i]);
@@ -273,9 +275,9 @@ Graph::pbfs_proc_Node(const int n[],
 }
 
 void
-Graph::pbfs_proc_Nodep(const int n[],
+Graph::pbfs_proc_Nodep(const intT n[],
 		      int j,
-		      Bag_reducer<int>* next,
+		      Bag_reducer<intT>* next,
 		      unsigned int newdist,
 		      unsigned int distances[])
 const
@@ -291,14 +293,14 @@ const
   });
 }
 
-int
-Graph::pbfs(const int s, unsigned int distances[]) const
+intT
+Graph::pbfs(const intT s, unsigned int distances[]) const
 {
   //printf("Graph::pbfs running\n");
 
-  Bag_reducer<int> *queue[2];
-  Bag_reducer<int> b1;
-  Bag_reducer<int> b2;
+  Bag_reducer<intT> *queue[2];
+  Bag_reducer<intT> b1;
+  Bag_reducer<intT> b2;
   queue[0] = &b1;
   queue[1] = &b2;
 
@@ -325,7 +327,7 @@ Graph::pbfs(const int s, unsigned int distances[]) const
   //cv.start();
 
   //  parfor (int i = nodes[s]; i < nodes[s+1]; ++i) {
-  par::parallel_for(nodes[s], nodes[s+1], [&] (int i) {
+  par::parallel_for(nodes[s], nodes[s+1], [&] (intT i) {
     //printf("Test\t");
     if (edges[i] != s) {
       (*queue[queuei]).insert(edges[i]);
@@ -359,14 +361,14 @@ Graph::pbfs(const int s, unsigned int distances[]) const
   return 0;
 }
 
-int
-Graph::countEdgesInPennant(Pennant<int> *p, int fillSize)
+intT
+Graph::countEdgesInPennant(Pennant<intT> *p, int fillSize)
 {
-  int edgestouched = 0;
+  intT edgestouched = 0;
   if (p->getRight() != NULL)
     edgestouched += countEdgesInPennant(p->getRight(), BLK_SIZE);
 
-  for (int i = 0; i < fillSize; ++i) {
+  for (intT i = 0; i < fillSize; ++i) {
     if (nodes[(p->getElements()[i])] < nodes[(p->getElements()[i])+1])
       edgestouched += (nodes[(p->getElements()[i])+1] - nodes[(p->getElements()[i])]);
   }
@@ -377,12 +379,12 @@ Graph::countEdgesInPennant(Pennant<int> *p, int fillSize)
   return edgestouched;
 }
 
-int
-Graph::countEdges(Bag<int> *b)
+intT
+Graph::countEdges(Bag<intT> *b)
 {
-  Pennant<int> *p = NULL;
-  int edgestouched = 0;
-  int pos = b->getFill()-1;
+  Pennant<intT> *p = NULL;
+  intT edgestouched = 0;
+  intT pos = b->getFill()-1;
 
   while(pos > -1) {
     pos = b->split(&p, pos);

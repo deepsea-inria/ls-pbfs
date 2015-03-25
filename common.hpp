@@ -6,3 +6,8 @@
 //#define cilk_for for
 #include "benchmark.hpp"
 namespace par = pasl::sched::native;
+#ifdef BITS32
+using intT = int;
+#else
+using intT = long;
+#endif

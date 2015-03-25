@@ -135,6 +135,7 @@ parse_args(int argc, char* argv[])
   return theArgs;
 }
 
+#if 0
 static int
 CumulativeSum(int* arr, int size)
 {
@@ -147,6 +148,7 @@ CumulativeSum(int* arr, int size)
   }
   return tempnz;
 }
+
 
 int
 parseBinaryFile(const string filename, Graph **graph)
@@ -235,3 +237,4 @@ parseBinaryFile(const string filename, Graph **graph)
 
   return 0;
 }
+#endif
