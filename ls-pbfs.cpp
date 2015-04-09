@@ -155,9 +155,9 @@ int main(int argc, char** argv) {
     mlockall(0);
   };
   auto run = [&] (bool sequential) {
-    par::parallel_for((intT)0, (intT)lsg.numNodes(), [&] (intT i) {
+    cilk_for(intT i = 0; i < (intT)lsg.numNodes(); i++) {
       distances[i] = UINT_MAX;
-    });
+    }
     lsg.pbfs(source, distances);
   };
   auto output = [&] {

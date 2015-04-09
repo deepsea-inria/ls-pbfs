@@ -282,15 +282,15 @@ Graph::pbfs_proc_Nodep(const intT n[],
 		      unsigned int distances[])
 const
 {
-  par::parallel_for(nodes[n[j]], nodes[n[j]+1], [&] (int i) {
-      //  parfor (int i = nodes[n[j]]; i < nodes[n[j]+1]; ++i) {
+  //  par::parallel_for(nodes[n[j]], nodes[n[j]+1], [&] (int i) {
+    cilk_for (int i = nodes[n[j]]; i < nodes[n[j]+1]; ++i) {
     if (newdist < distances[edges[i]]) {
       (*next).insert(edges[i]);
       //printf("Test3\n");
       distances[edges[i]] = newdist;
     }
     // distances[*i] = newdist < distances[*i] ? newdist : distances[*i];
-  });
+  }
 }
 
 intT
@@ -326,15 +326,16 @@ Graph::pbfs(const intT s, unsigned int distances[]) const
 
   //cv.start();
 
-  //  parfor (int i = nodes[s]; i < nodes[s+1]; ++i) {
-  par::parallel_for(nodes[s], nodes[s+1], [&] (intT i) {
+  cilk_for (int i = nodes[s]; i < nodes[s+1]; ++i) {
+    //  par::parallel_for(nodes[s], nodes[s+1], [&] (intT i) {
     //printf("Test\t");
     if (edges[i] != s) {
       (*queue[queuei]).insert(edges[i]);
       //distances[perm[edges[i]]] = 1;
       distances[edges[i]] = 1;
     }
-  });
+    //  });
+  }
   newdist = 2;
 
   //printf("Test2\n");
